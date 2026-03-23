@@ -49,6 +49,8 @@ class Assignment1:
         # Write code here
         for printer_thread in self.pThreads:
             printer_thread.join()
+        
+        print("Simulation finished.")
 
     # Printer class
     class printerThread(threading.Thread):
