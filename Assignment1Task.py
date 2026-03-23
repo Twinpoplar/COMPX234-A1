@@ -20,6 +20,10 @@ class Assignment1:
         self.mThreads = []             # list for machine threads
         self.pThreads = []             # list for printer threads
 
+        # Create semaphores
+        self.semaphore = threading.Semaphore(self.NUM_PRINTERS)  # counting semaphore
+        self.binary = threading.Semaphore(1)
+                             # binary semaphore
     def startSimulation(self):
         # Create Machine and Printer threads
         # Write code here
@@ -83,7 +87,15 @@ class Assignment1:
                 self.machineSleep()
                 # Machine wakes up and sends a print request
                 # Write code here
+
+                # Check if it is safe to send a request by acquiring semaphores
+                self.isRequestSafe(self.machineID)
+
+                # Both semaphores have been acquired, now send a print request
                 self.printRequest(self.machineID)
+
+                # Release the binary semaphore after inserting the print request
+                self.postRequest(self.machineID)
 
         def machineSleep(self):
             sleepSeconds = random.randint(1, self.outer.MAX_MACHINE_SLEEP)
@@ -95,3 +107,18 @@ class Assignment1:
             doc = printDoc(f"My name is machine {id}", id)
             # Insert it in the print queue
             self.outer.print_list.queueInsert(doc)
+        
+        def isRequestSafe(self, id):
+            print(f"Machine {id} Checking availability")
+            # Acquire counting semaphore (wait for an available printer)
+            self.outer.semaphore.acquire()
+            # Acquire binary semaphore for mutual exclusion of the print queue
+            self.outer.binary.acquire()
+            # Both semaphores acquired
+            print(f"Machine {id} will proceed")
+        
+        # Write code here for postRequest, i.e., after inserting the print request
+        def postRequest(self, id):
+            print(f"Machine {id} Releasing binary semaphore")
+            # Release the binary semaphore
+            self.outer.binary.release()
